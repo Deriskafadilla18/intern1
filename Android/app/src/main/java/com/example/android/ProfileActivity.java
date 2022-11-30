@@ -49,7 +49,7 @@ public class ProfileActivity extends FragmentActivity implements OnMapReadyCallb
     private TextView nik, nama, ttl, jk, agama, latitude, longitude, altitude, akurasi, NIK, Nama, Alamat;
     private Button btnSimpan, btnCari;
     private FusedLocationProviderClient locationProviderClient;
-    private static String BASE_URL = "http://192.168.110.104/RestIntern/api/profile";
+    private static String BASE_URL = "http://192.168.110.104/RestIntern/api/";
     private String PREF_NIK;
     private ProgressBar loading;
 
@@ -84,11 +84,49 @@ public class ProfileActivity extends FragmentActivity implements OnMapReadyCallb
             getLocation();
         });
         btnSimpan.setOnClickListener(v -> {
-//            String lat  = latitude.getText().toString().trim();
-//            String lon = longitude.getText().toString().trim();
-//            String al = altitude.getText().toString().trim();
-//            String ak = akurasi.getText().toString().trim();
+            saveLocation();
         });
+    }
+
+    private void saveLocation(){
+        String lat  = latitude.getText().toString().trim();
+        String lon = longitude.getText().toString().trim();
+        String al = altitude.getText().toString().trim();
+        String ak = akurasi.getText().toString().trim();
+
+        StringRequest stringRequest = new StringRequest(Request.Method.POST, BASE_URL+"index_ubah",
+                new Response.Listener<String>() {
+                    @Override
+                    public void onResponse(String response) {
+                        try {
+                            JSONObject jsonObject = new JSONObject(response);
+                            String pesan = jsonObject.getString("pesan");
+                            Toast.makeText(ProfileActivity.this, pesan, Toast.LENGTH_LONG).show();
+                        } catch (JSONException e) {
+                            e.printStackTrace();
+                            Toast.makeText(ProfileActivity.this, "Data Error! " + e.toString(), Toast.LENGTH_SHORT).show();
+                        }
+                    }
+                },
+                new Response.ErrorListener() {
+                    @Override
+                    public void onErrorResponse(VolleyError error) {
+                        Toast.makeText(ProfileActivity.this, "Error! " + error.toString(), Toast.LENGTH_SHORT).show();
+                    }
+                }) {
+            @Override
+            protected Map<String, String> getParams() throws AuthFailureError {
+                Map<String, String> params = new HashMap<>();
+                params.put("latitude", lat);
+                params.put("longitude", lon);
+                params.put("altitude", al);
+                params.put("nik", PREF_NIK);
+                return params;
+            }
+        };
+
+        RequestQueue requestQueue = Volley.newRequestQueue(this);
+        requestQueue.add(stringRequest);
     }
 
     private void profile(final String PREF_NIK) {
@@ -100,7 +138,7 @@ public class ProfileActivity extends FragmentActivity implements OnMapReadyCallb
 //        final String al = this.altitude.getText().toString().trim();
 //        final String ak = this.akurasi.getText().toString().trim();
 
-        StringRequest stringRequest = new StringRequest(Request.Method.POST, BASE_URL,
+        StringRequest stringRequest = new StringRequest(Request.Method.POST, BASE_URL+"profile",
                 new Response.Listener<String>() {
                     @Override
                     public void onResponse(String response) {
